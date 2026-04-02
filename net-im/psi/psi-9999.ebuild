@@ -151,6 +151,18 @@ src_configure() {
 }
 
 src_compile() {
+	local qtbin=/usr/$(get_libdir)/qt5/bin
+	local ui rel outdir out
+
+	while IFS= read -r -d '' ui; do
+		rel=${ui#${S}/}
+		outdir=${BUILD_DIR}/$(dirname "${rel}")
+		out=${outdir}/ui_$(basename "${ui}" .ui).h
+
+		mkdir -p "${outdir}" || die
+		"${qtbin}"/uic "${ui}" -o "${out}" || die "uic failed for ${rel}"
+	done < <(find "${S}" -name '*.ui' -print0)
+
 	cmake_src_compile
 	use doc && emake -C doc api_public
 }
